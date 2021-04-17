@@ -257,8 +257,8 @@ class MainCog(commands.Cog):
         channel = self.bot.get_channel(raw_reaction.channel_id)
         guild = channel.guild
         # Skip reactions in the archive channel
-        if raw_reaction.channel_id == self.read_config(guild,
-                                                       "archive_channel"):
+        if raw_reaction.channel_id == self.read_config(
+            guild, "archive_channel"):
             return
 
         message_id = raw_reaction.message_id
@@ -280,7 +280,10 @@ class MainCog(commands.Cog):
         """Listen for the system pins_add message and copy the pinned message to the archive channel."""
         if message.type != discord.MessageType.pins_add:
             return
-        if message.channel.id == self.read_config(message.guild,
+        if message.channel.id == self.read_config(
+            message.guild,
+            "archive_channel"
+        ):
             return
 
         reference = message.reference
