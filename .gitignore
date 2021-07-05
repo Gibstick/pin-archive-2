@@ -7,3 +7,7 @@ __pycache__/
 *.ini
 !config_pin_archive_sample.ini
 config/
+.env
+
+# Editor
+.vscode

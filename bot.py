@@ -1,15 +1,12 @@
-import argparse
-import configparser
 import mimetypes
 import os
 import pickle
-from typing import Dict, Any, Type
+import sys
+from typing import Any, Dict, Type
 
 import discord
 from discord.ext import commands
-
-
-import util
+from dotenv import load_dotenv
 
 DEFAULT_REACTS = 7
 
@@ -322,21 +319,14 @@ class MainCog(commands.Cog):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-c",
-        "--config",
-        help="Config file path",
-        default="config_pin_archive.ini",
-    )
+    load_dotenv()
+    config_path = os.getenv("PIN_ARCHIVE_CONFIG_PATH", "config")
+    prefix = os.getenv("PIN_ARCHIVE_PREFIX", "+")
+    token = os.getenv("PIN_ARCHIVE_TOKEN", None)
 
-    args = parser.parse_args()
-
-    config = configparser.ConfigParser()
-    config.read(args.config)
-    token = util.try_config(config, "MAIN", "Token")
-    prefix = util.try_config(config, "MAIN", "Prefix")
-    config_path = util.try_config(config, "MAIN", "ConfigPath")
+    if not token:
+        print("Set PIN_ARCHIVE_TOKEN")
+        sys.exit(1)
 
     os.makedirs(config_path, exist_ok=True)
 

@@ -9,11 +9,13 @@ license = "MIT"
 python = "^3.8"
 "discord.py" = "==1.7.1"
 requests = "*"
+python-dotenv = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.6b0"
 flake8 = "^3.9.2"
 mypy = "^0.910"
+isort = "^5.9.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -37,3 +39,6 @@ exclude = '''
   )/
 )
 '''
+
+[tool.isort]
+profile = "black"
