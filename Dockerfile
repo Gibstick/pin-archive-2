@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir --no-warn-script-location -r requirements.txt
 
 COPY *.py ./
 
-CMD ["python", "bot.py", "--config", "/app/config_pin_archive.ini"]
+CMD ["python", "bot.py"]
