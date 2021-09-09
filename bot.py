@@ -178,7 +178,7 @@ class MainCog(commands.Cog):
             # Set the first image attachment as the embed image
             for attachment in attachments:
                 guess = mimetypes.guess_type(attachment.filename)[0]
-                if guess and guess[0].startswith("image/"):
+                if guess and guess.startswith("image/"):
                     embed.set_image(url=attachment.url)
                     break
 
