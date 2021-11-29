@@ -7,16 +7,12 @@ from typing import Any, Dict, Type
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from discord_slash.utils.manage_commands import create_option,create_permission
-from discord_slash import SlashCommand,cog_ext
-from discord_slash.model import SlashCommandOptionType,SlashCommandPermissionType
 
 DEFAULT_REACTS = 7
-load_dotenv()
+
 DiscordContext = Type[commands.Context]
 
 
-permission = {int(os.getenv("GUILD_ID")):[create_permission(int(os.getenv("ADMIN_ID")), SlashCommandPermissionType.ROLE, True)]}
 def guild_save_config(
     config_path: str, guild_id: int, key: str, value: Any
 ) -> None:
@@ -93,7 +89,6 @@ class MainCog(commands.Cog):
         self.bot = bot
         self.config_path = config_path
         self.config_cache: Dict[str, Any] = {}
-        self.converter = commands.MessageConverter()
         self.webhook_adapter = discord.RequestsWebhookAdapter()
 
     def read_config(self, guild: discord.Guild, key: str) -> Any:
@@ -211,26 +206,15 @@ class MainCog(commands.Cog):
 
         webhook.send(**webhook_message)
 
-    @cog_ext.cog_slash(name="init",
-        description="Initialize the bot with the given pin-archive channel.",
-        options=[create_option(
-                 name="pin_channel",
-                 description="This is pin archive channel",
-                 option_type=SlashCommandOptionType.CHANNEL,
-                 required=True)],
-        default_permission=False,
-        permissions=permission)
+    @commands.command()
     async def init(
         self,
         ctx: DiscordContext,
         pin_channel: discord.TextChannel,
     ) -> None:
         """Initialize the bot with the given pin-archive channel."""
-        print(ctx.channel.permissions_for(
-            ctx.author
-        ).administrator)
-        if not ctx.channel.permissions_for(
-            ctx.author
+        if not ctx.message.channel.permissions_for(
+            ctx.message.author
         ).administrator:
             return
         guild = ctx.guild
@@ -256,53 +240,32 @@ class MainCog(commands.Cog):
             f"Set archive channel to #{pin_channel} and created webhook"
         )
 
-    @cog_ext.cog_slash(name="archive",
-        description="Archive a message",
-        default_permission=False,
-        permissions=permission)
+    @commands.command()
     async def archive(
         self, ctx: DiscordContext, message: discord.Message
     ) -> None:
         """Archive a message.
 
         The message gets converted using discord.MessageConverter."""
-        if not ctx.channel.permissions_for(
-            ctx.author
+        if not ctx.message.channel.permissions_for(
+            ctx.message.author
         ).manage_messages:
-            return
-        await ctx.defer()
-        try:
-            message = await self.converter.convert(ctx,message)
-        except commands.CommandError as e:
-            print(e)
-            await ctx.send("Message not found")
             return
 
         await self.archive_message(message)
-        # Respond to interaction
-        await ctx.send("Message added to pin-archive",hidden=True)
 
-    @cog_ext.cog_slash(name="setreactcount",
-        description="Set the reaction count threshold.",
-        options=[create_option(
-                 name="count",
-                 description="Reaction count",
-                 option_type=SlashCommandOptionType.INTEGER,
-                 required=True)],
-        default_permission=False,
-        permissions=permission)
+    @commands.command()
     async def setreactcount(self, ctx: DiscordContext, count: int) -> None:
         """Set the reaction count threshold."""
-        if not ctx.channel.permissions_for(
-            ctx.author
+        if not ctx.message.channel.permissions_for(
+            ctx.message.author
         ).manage_messages:
             return
 
         self.save_config(ctx.guild, "reaction_count", count)
         await ctx.send(f"Set reaction count to {count} :pushpin:")
 
-    @cog_ext.cog_slash(name="getreactcount",
-        description="Get the reaction count threshold.")
+    @commands.command()
     async def getreactcount(self, ctx: DiscordContext) -> None:
         """Get the reaction count threshold."""
         count = self.get_react_count(ctx.guild)
@@ -373,8 +336,6 @@ def main() -> None:
     )
 
     bot = commands.Bot(command_prefix=prefix, intents=intents)
-    slash = SlashCommand(bot, sync_commands=True,sync_on_cog_reload=True,override_type=True,
-        debug_guild=os.getenv("GUILD_ID"))
     bot.add_cog(MainCog(bot, config_path))
     bot.run(token)
 
