@@ -162,7 +162,7 @@ class MainCog(commands.Cog):
         embed.set_author(name=name, url=message_url, icon_url=avatar_url)
         embed.set_footer(text=f"Sent in {message.channel.name}")
         attachments = message.attachments
-
+        embeds=[embed]
         if message.embeds:
             thumbnail = message.embeds[0].thumbnail
             if thumbnail.url:
@@ -176,19 +176,21 @@ class MainCog(commands.Cog):
                     embed.set_thumbnail(url=thumbnail.url)
         elif attachments:
             # Set the first image attachment as the embed image
-            for attachment in attachments:
+            for i,attachment in enumerate(attachments):
                 guess = mimetypes.guess_type(attachment.filename)[0]
                 if guess and guess.startswith("image/"):
-                    embed.set_image(url=attachment.url)
-                    break
-
-        # Add links to attachments as extra fields
-        for attachment in attachments:
-            embed.add_field(name="🔗", value=attachment.url)
+                    if i==0:
+                        embeds[0].set_image(url=attachment.url)
+                        embeds[0].add_field(name="🔗", value=attachment.url)
+                    else:
+                        tempembed = discord.Embed(timestamp=message.created_at,color=0x7289DA)
+                        tempembed.set_image(url=attachment.url)
+                        tempembed.add_field(name="🔗", value=attachment.url)
+                        embeds.append(tempembed)
 
         # Heuristic: if the embed URL is in the message content already,
         # don't create an embed
-        embeds = [embed] + (
+        embeds = embeds + (
             [
                 embed
                 for embed in message.embeds
